@@ -9,7 +9,7 @@ public struct ColorList
 
     public List<ColorObject> colors;
 
-    public bool GetColor(string id, out ColorObject color)
+    public bool GetColor(string id, out Color color)
     {
         if(colors == null || colors.Count == 0)
         {
@@ -27,7 +27,7 @@ public struct ColorList
             return false;
         }
         
-        color = colors[index];
+        color = colors[index].color;
         return true;
     }
 }

@@ -14,7 +14,7 @@ public struct ColorList
         if(colors == null || colors.Count == 0)
         {
             Debug.LogWarning(WARNING_EMPTY);
-            color = default;
+            color = Color.magenta;
             return false;
         }
 
@@ -23,7 +23,7 @@ public struct ColorList
         if(index == -1)
         {
             Debug.LogWarning(WARNING_NOT_FOUND + id);
-            color = default;
+            color = Color.magenta;
             return false;
         }
         

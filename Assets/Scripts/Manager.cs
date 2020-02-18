@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System.Collections.Generic;
+using UnityEngine;
 
 public class Manager : MonoBehaviour
 {
@@ -12,6 +13,12 @@ public class Manager : MonoBehaviour
 
     public ColorList colors;
     public CombinationList combinations;
+
+    private Dictionary<string, GameObject> instantiatedSculptures = 
+        new Dictionary<string, GameObject>();
+
+    private GameObject currentSculpture;
+
 
     private void Start()
     {
@@ -37,19 +44,51 @@ public class Manager : MonoBehaviour
             itemButton.gameObject.name = "Item Button - " + c.id;
 
             itemButton.button.onClick.
-                AddListener( () => GenerateObject(c.id));
+                AddListener( () => DisplaySculpture(c.id));
         }
     }
 
-    private void GenerateObject(string id)
+    private void DisplaySculpture(string id)
+    {
+        //hide current sculpture
+        if(currentSculpture)
+        {
+            currentSculpture.SetActive(false);
+            currentSculpture = null;
+        }
+
+        //check if already has instantiated this object
+        if(instantiatedSculptures.ContainsKey(id))
+        {
+            currentSculpture = instantiatedSculptures[id];
+            currentSculpture.SetActive(true);
+        }
+        else
+        {
+            var sculpture = GenerateSculpture(id);
+            if(sculpture)
+            {
+                currentSculpture = sculpture.gameObject;
+                instantiatedSculptures.Add(id, sculpture.gameObject);
+            }
+            else
+                Debug.LogWarning("Failed to create sculpture");
+        }
+
+    }
+
+    private Transform GenerateSculpture(string id)
     {
         Combination combination;
 
         if(combinations.GetCombination(id, out combination))
         {
+            var parent = new GameObject("id").transform;
+
             foreach (var item in combination.items)
             {
                 var cube = GameObject.CreatePrimitive(PrimitiveType.Cube);
+                cube.transform.parent = parent.transform;
 
                 cube.transform.localPosition = item.transformData.position;
                 cube.transform.localScale = item.transformData.scale;
@@ -62,6 +101,10 @@ public class Manager : MonoBehaviour
                 renderer.sharedMaterial = objectsMaterial;
                 renderer.material.SetColor("_Color", color);
             }
+
+            return parent;
         }
+
+        return null;
     }
 }

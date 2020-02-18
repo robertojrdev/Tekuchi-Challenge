@@ -1,5 +1,4 @@
 ﻿using UnityEngine;
-// using Newtonsoft.Json;
 
 public class Manager : MonoBehaviour
 {
@@ -7,13 +6,17 @@ public class Manager : MonoBehaviour
     public TextAsset jsonObjects;
     public TextAsset jsonColors;
 
+    [Space(10), Header("UI")]
+    public Transform buttonsContainer;
+    public ItemButton itemButtonPrefab;
+
     public ColorList colors;
     public CombinationList combinations;
 
     private void Start()
     {
         LoadFiles();
-        GenerateObject("mario");
+        PopulateUIListItems();
     }
 
     private void LoadFiles()
@@ -23,6 +26,19 @@ public class Manager : MonoBehaviour
 
         combinations = JsonUtility.FromJson<CombinationList>(
             jsonObjects.ToString());
+    }
+
+    private void PopulateUIListItems()
+    {
+        foreach (var c in combinations.combinations)
+        {
+            var itemButton = Instantiate(itemButtonPrefab, buttonsContainer);
+            itemButton.SetId(c.id);
+            itemButton.gameObject.name = "Item Button - " + c.id;
+
+            itemButton.button.onClick.
+                AddListener( () => GenerateObject(c.id));
+        }
     }
 
     private void GenerateObject(string id)

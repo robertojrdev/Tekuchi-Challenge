@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 170076734}
-  m_IndirectSpecularColor: {r: 0, g: 0, b: 0, a: 1}
+  m_IndirectSpecularColor: {r: 0.4469666, g: 0.49685693, b: 0.5750426, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -52,7 +52,7 @@ LightmapSettings:
     m_AlbedoBoost: 1
     m_EnvironmentLightingMode: 0
     m_EnableBakedLightmaps: 1
-    m_EnableRealtimeLightmaps: 0
+    m_EnableRealtimeLightmaps: 1
   m_LightmapEditorSettings:
     serializedVersion: 10
     m_Resolution: 2
@@ -88,7 +88,7 @@ LightmapSettings:
     m_PVRFilteringAtrousPositionSigmaIndirect: 2
     m_PVRFilteringAtrousPositionSigmaAO: 1
     m_ShowResolutionOverlay: 1
-  m_LightingDataAsset: {fileID: 112000000, guid: 52acbcf51b1b0f74b9373b40d552955a,
+  m_LightingDataAsset: {fileID: 112000000, guid: 18a73010a9545cb4f9ddd560c033ab4a,
     type: 2}
   m_UseShadowmask: 1
 --- !u!196 &4
@@ -267,7 +267,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 020870cd76c3c1341b0d4e2d28585b2d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  objectsMaterial: {fileID: 0}
+  objectsMaterial: {fileID: 2100000, guid: a07d6f7b3b079574c901036e970f00f1, type: 2}
   jsonObjects: {fileID: 4900000, guid: a4e1f636ed4d6294fad0311494b94ed4, type: 3}
   jsonColors: {fileID: 4900000, guid: 8aa49571242c8314d83a9395e0d4a645, type: 3}
   buttonsContainer: {fileID: 1209485418}
@@ -338,6 +338,7 @@ GameObject:
   - component: {fileID: 534669905}
   - component: {fileID: 534669904}
   - component: {fileID: 534669903}
+  - component: {fileID: 534669906}
   m_Layer: 0
   m_Name: Main Camera
   m_TagString: MainCamera
@@ -409,6 +410,23 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 1
   m_LocalEulerAnglesHint: {x: 41.16, y: -37.299004, z: 0}
+--- !u!114 &534669906
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 534669902}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1c8179c8e75a5464ebcc1c0820da0001, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  movementSpeed: 200
+  zoomSpeed: 10
+  pivot: {x: 0, y: 0, z: 0}
+  distance: 15
+  rotation: {x: 30, y: 45}
 --- !u!1 &544320590
 GameObject:
   m_ObjectHideFlags: 0
@@ -689,6 +707,7 @@ GameObject:
   - component: {fileID: 1010693645}
   - component: {fileID: 1010693644}
   - component: {fileID: 1010693643}
+  - component: {fileID: 1010693646}
   m_Layer: 5
   m_Name: Scroll View
   m_TagString: Untagged
@@ -783,6 +802,18 @@ MonoBehaviour:
   m_OnValueChanged:
     m_PersistentCalls:
       m_Calls: []
+--- !u!114 &1010693646
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1010693641}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5d54064483b10df4eaf8f32bc141fdd9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &1209485417
 GameObject:
   m_ObjectHideFlags: 0
@@ -1270,6 +1301,10 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 170076734, guid: cb3063f4006b8b546a16bb64935519fe, type: 3}
+      propertyPath: m_Shadows.m_Strength
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 9136057453843030127, guid: cb3063f4006b8b546a16bb64935519fe,
         type: 3}
       propertyPath: m_LocalPosition.x

@@ -14,10 +14,10 @@ public class Manager : MonoBehaviour
     public ColorList colors;
     public CombinationList combinations;
 
-    private Dictionary<string, GameObject> instantiatedSculptures = 
-        new Dictionary<string, GameObject>();
+    private Dictionary<string, Sculpture> instantiatedSculptures = 
+        new Dictionary<string, Sculpture>();
 
-    private GameObject currentSculpture;
+    private Sculpture currentSculpture;
 
 
     private void Start()
@@ -53,7 +53,7 @@ public class Manager : MonoBehaviour
         //hide current sculpture
         if(currentSculpture)
         {
-            currentSculpture.SetActive(false);
+            currentSculpture.Hide();
             currentSculpture = null;
         }
 
@@ -61,15 +61,16 @@ public class Manager : MonoBehaviour
         if(instantiatedSculptures.ContainsKey(id))
         {
             currentSculpture = instantiatedSculptures[id];
-            currentSculpture.SetActive(true);
+            currentSculpture.Show();
         }
         else
         {
             var sculpture = GenerateSculpture(id);
             if(sculpture)
             {
-                currentSculpture = sculpture.gameObject;
-                instantiatedSculptures.Add(id, sculpture.gameObject);
+                currentSculpture = sculpture;
+                instantiatedSculptures.Add(id, sculpture);
+                sculpture.Show();
             }
             else
                 Debug.LogWarning("Failed to create sculpture");
@@ -77,32 +78,24 @@ public class Manager : MonoBehaviour
 
     }
 
-    private Transform GenerateSculpture(string id)
+    private Sculpture GenerateSculpture(string id)
     {
         Combination combination;
 
         if(combinations.GetCombination(id, out combination))
         {
-            var parent = new GameObject("id").transform;
+            var sculpture = new GameObject("id").AddComponent<Sculpture>();
+            sculpture.material = objectsMaterial;
 
             foreach (var item in combination.items)
-            {
-                var cube = GameObject.CreatePrimitive(PrimitiveType.Cube);
-                cube.transform.parent = parent.transform;
-
-                cube.transform.localPosition = item.transformData.position;
-                cube.transform.localScale = item.transformData.scale;
-                cube.transform.eulerAngles = item.transformData.rotation;
-                
+            {                
                 Color color;
                 colors.GetColor(item.colorID, out color);
 
-                var renderer = cube.GetComponent<MeshRenderer>();
-                renderer.sharedMaterial = objectsMaterial;
-                renderer.material.SetColor("_Color", color);
+                sculpture.AddPiece(item.transformData, color);
             }
 
-            return parent;
+            return sculpture;
         }
 
         return null;

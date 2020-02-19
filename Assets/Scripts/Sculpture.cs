@@ -2,53 +2,31 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Sculpture : MonoBehaviour
+[System.Serializable]
+public struct Sculpture
 {
-    List<TransformData> dataSets = new List<TransformData>();
-    List<Transform> transforms = new List<Transform>();
-    List<MeshRenderer> renderers = new List<MeshRenderer>();
-    public Material material;
+    public Cube[] cubes;
+    public Combination combination;
 
-    public void AddPiece(TransformData data, Color color)
+    public static IEnumerator ShowAnimation(Sculpture sculpture, ColorList colors)
     {
-        var cube = GameObject.CreatePrimitive(PrimitiveType.Cube);
-        cube.transform.parent = transform;
-        cube.SetActive(false);
-
-        cube.transform.localPosition = data.position;
-        cube.transform.localScale = data.scale;
-        cube.transform.eulerAngles = data.rotation;
-
-        var renderer = cube.GetComponent<MeshRenderer>();
-        renderer.sharedMaterial = material;
-
-        var block = new MaterialPropertyBlock(); //this is more efficient than having one distinct material per obj
-        block.SetColor("_Color", color);
-        renderer.SetPropertyBlock(block);
-
-        dataSets.Add(data);
-        transforms.Add(cube.transform);
-        renderers.Add(renderer);
-    }
-
-    public void Show()
-    {
-        gameObject.SetActive(true);
-        StopAllCoroutines();
-        StartCoroutine(ShowAnimation());
-    }
-
-    private IEnumerator ShowAnimation()
-    {
-        var count = transforms.Count;
+        var count = sculpture.cubes.Length;
         var block = new MaterialPropertyBlock();
 
-        //place objects in a random position above the stage
+        //setup and place objects in a random position above the stage
+        Color color;
         for (int i = 0; i < count; i++)
         {
-            var randPos = dataSets[i].position + Random.insideUnitSphere + Vector3.up * 1.5f;
-            transforms[i].position = randPos;
-            transforms[i].gameObject.SetActive(true);
+            var item = sculpture.combination.items[i];
+            var randPos = item.transformData.position + Random.insideUnitSphere + Vector3.up * 1.5f;
+            sculpture.cubes[i].transform.position = randPos;
+            sculpture.cubes[i].gameObject.SetActive(true);
+
+            //set color
+            sculpture.cubes[i].meshRenderer.GetPropertyBlock(block);
+            colors.GetColor(sculpture.combination.items[i].colorID, out color);
+            block.SetColor("_Color", color);
+            sculpture.cubes[i].meshRenderer.SetPropertyBlock(block);
         }
 
         //store random positions to lerp
@@ -56,8 +34,8 @@ public class Sculpture : MonoBehaviour
         var originalRotations = new Quaternion[count];
         for (int i = 0; i < count; i++)
         {
-            originalPositions[i] = transforms[i].localPosition;
-            originalRotations[i] = transforms[i].localRotation;
+            originalRotations[i] = sculpture.cubes[i].transform.localRotation;
+            originalPositions[i] = sculpture.cubes[i].transform.localPosition;
         }
 
         //start animation loop
@@ -72,40 +50,36 @@ public class Sculpture : MonoBehaviour
             //apply animation to each object individually
             for (int i = 0; i < count; i++)
             {
+                var item = sculpture.combination.items[i];
+
                 //slerp cause a circular movement effect
                 var newPos = Vector3.Slerp(
-                    originalPositions[i], dataSets[i].position, t);
+                    originalPositions[i], item.transformData.position, t);
 
                 var newRot = Quaternion.Lerp(
-                    originalRotations[i], Quaternion.Euler(dataSets[i].rotation), t);
+                    originalRotations[i], Quaternion.Euler(item.transformData.rotation), t);
 
                 var newScale = Vector3.Slerp(
-                    Vector3.zero, dataSets[i].scale, t);
+                    Vector3.zero, item.transformData.scale, t);
 
                 //fade-in
-                renderers[i].GetPropertyBlock(block);
+                sculpture.cubes[i].meshRenderer.GetPropertyBlock(block);
                 block.SetFloat("_Cutoff", 1 - t);
 
                 //apply animation
-                renderers[i].SetPropertyBlock(block);
-                transforms[i].localPosition = newPos;
-                transforms[i].localRotation = newRot;
-                transforms[i].localScale = newScale;
+                sculpture.cubes[i].meshRenderer.SetPropertyBlock(block);
+                sculpture.cubes[i].transform.localPosition = newPos;
+                sculpture.cubes[i].transform.localRotation = newRot;
+                sculpture.cubes[i].transform.localScale = newScale;
             }
 
             yield return null;
         }
     }
 
-    public void Hide()
+    public static IEnumerator HideAnimation(Sculpture sculpture)
     {
-        StopAllCoroutines();
-        StartCoroutine(HideAnimation());
-    }
-
-    private IEnumerator HideAnimation()
-    {
-        var count = transforms.Count;
+        var count = sculpture.cubes.Length;
         var block = new MaterialPropertyBlock();
 
         //store initial positions to lerp
@@ -113,8 +87,8 @@ public class Sculpture : MonoBehaviour
         var originalRotations = new Quaternion[count];
         for (int i = 0; i < count; i++)
         {
-            originalPositions[i] = transforms[i].localPosition;
-            originalRotations[i] = transforms[i].localRotation;
+            originalPositions[i] = sculpture.cubes[i].transform.localPosition;
+            originalRotations[i] = sculpture.cubes[i].transform.localRotation;
         }
 
         //start animation loop
@@ -129,6 +103,8 @@ public class Sculpture : MonoBehaviour
             //apply animation to each object individually
             for (int i = 0; i < count; i++)
             {
+                var item = sculpture.combination.items[i];
+
                 //slerp cause a circular movement effect
                 var newPos = Vector3.Slerp(
                     originalPositions[i], originalPositions[i] + Vector3.up * 2, t);
@@ -137,22 +113,24 @@ public class Sculpture : MonoBehaviour
                     originalRotations[i], Quaternion.Inverse(originalRotations[i]), t);
                     
                 var newScale = Vector3.Slerp(
-                    dataSets[i].scale, Vector3.zero, t);
+                    item.transformData.scale, Vector3.zero, t);
 
                 //fade-out
-                renderers[i].GetPropertyBlock(block);
+                sculpture.cubes[i].meshRenderer.GetPropertyBlock(block);
                 block.SetFloat("_Cutoff", t + 0.1f);
 
                 //apply animation
-                renderers[i].SetPropertyBlock(block);
-                transforms[i].localPosition = newPos;
-                transforms[i].localRotation = newRot;
-                transforms[i].localScale = newScale;
+                sculpture.cubes[i].meshRenderer.SetPropertyBlock(block);
+                sculpture.cubes[i].transform.localPosition = newPos;
+                sculpture.cubes[i].transform.localRotation = newRot;
+                sculpture.cubes[i].transform.localScale = newScale;
             }
 
             yield return null;
         }
-        
-        gameObject.SetActive(false);
+
+        //free cubes
+        for (int i = 0; i < count; i++)
+            sculpture.cubes[i].busy = false;
     }
 }

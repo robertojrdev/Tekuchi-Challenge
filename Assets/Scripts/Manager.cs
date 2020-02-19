@@ -14,11 +14,9 @@ public class Manager : MonoBehaviour
     public ColorList colors;
     public CombinationList combinations;
 
-    private Dictionary<string, Sculpture> instantiatedSculptures = 
-        new Dictionary<string, Sculpture>();
-
-    private Sculpture currentSculpture;
-
+    private Sculpture? currentSculpture;
+    private List<Cube> pool = new List<Cube>();
+    private Transform poolParent;
 
     private void Start()
     {
@@ -44,61 +42,71 @@ public class Manager : MonoBehaviour
             itemButton.gameObject.name = "Item Button - " + c.id;
 
             itemButton.button.onClick.
-                AddListener( () => DisplaySculpture(c.id));
+                AddListener(() => DisplaySculpture(c.id));
         }
     }
 
     private void DisplaySculpture(string id)
     {
         //hide current sculpture
-        if(currentSculpture)
+        if (currentSculpture.HasValue)
         {
-            currentSculpture.Hide();
+            StartCoroutine(Sculpture.HideAnimation(currentSculpture.Value));
+
             currentSculpture = null;
         }
 
-        //check if already has instantiated this object
-        if(instantiatedSculptures.ContainsKey(id))
+        //allocate cubes for new sculpture
+        Combination combination;
+        if (combinations.GetCombination(id, out combination))
         {
-            currentSculpture = instantiatedSculptures[id];
-            currentSculpture.Show();
-        }
-        else
-        {
-            //instantiate new sculpture
-            var sculpture = GenerateSculpture(id);
-            if(sculpture)
+            var size = combination.items.Count;
+            var cubes = AllocateCubes(size);
+
+            currentSculpture = new Sculpture()
             {
-                currentSculpture = sculpture;
-                instantiatedSculptures.Add(id, sculpture);
-                sculpture.Show();
-            }
-            else
-                Debug.LogWarning("Failed to create sculpture");
+                cubes = cubes,
+                combination = combination
+            };
+
+            StartCoroutine(Sculpture.ShowAnimation(currentSculpture.Value, colors));
         }
 
     }
 
-    private Sculpture GenerateSculpture(string id)
+    private Cube[] AllocateCubes(int amount)
     {
-        Combination combination;
+        if(poolParent == null)
+            poolParent = new GameObject("Pool").transform;
 
-        if(combinations.GetCombination(id, out combination))
+        var cubes = new Cube[amount];
+
+        var cubesAvailable = 0;
+        for (int i = 0; i < pool.Count; i++)
         {
-            var sculpture = new GameObject("id").AddComponent<Sculpture>();
-            sculpture.material = objectsMaterial;
-
-            foreach (var item in combination.items)
-            {                
-                Color color;
-                colors.GetColor(item.colorID, out color);
-
-                sculpture.AddPiece(item.transformData, color);
+            if (!pool[i].busy)
+            {
+                pool[i].busy = true;
+                cubes[cubesAvailable] = pool[i];
+                cubesAvailable++;
+                
+                if(cubesAvailable == amount)
+                    return cubes;
             }
+        }
+        
+        var newCubesRequired = amount - cubesAvailable;
 
-            return sculpture;
+        for (int i = 0; i < newCubesRequired; i++)
+        {
+            var cube = Cube.GetCube(objectsMaterial);
+            cube.busy = true;
+            cube.transform.parent = poolParent;
+
+            pool.Add(cube);
+            cubes[i + cubesAvailable] = cube;
         }
 
-        return null;
+        return cubes;
     }
 }

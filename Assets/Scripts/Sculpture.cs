@@ -79,6 +79,9 @@ public class Sculpture : MonoBehaviour
                 var newRot = Quaternion.Lerp(
                     originalRotations[i], Quaternion.Euler(dataSets[i].rotation), t);
 
+                var newScale = Vector3.Slerp(
+                    Vector3.zero, dataSets[i].scale, t);
+
                 //fade-in
                 renderers[i].GetPropertyBlock(block);
                 block.SetFloat("_Cutoff", 1 - t);
@@ -87,6 +90,7 @@ public class Sculpture : MonoBehaviour
                 renderers[i].SetPropertyBlock(block);
                 transforms[i].localPosition = newPos;
                 transforms[i].localRotation = newRot;
+                transforms[i].localScale = newScale;
             }
 
             yield return null;
@@ -114,13 +118,13 @@ public class Sculpture : MonoBehaviour
         }
 
         //start animation loop
-        var time = .9f;
+        var time = 1f;
         var counter = 0f;
         while (counter <= time)
         {
             counter += Time.deltaTime;
             //lerp using an ease function
-            var t = Easing.EaseOutExpo(0, time, counter);
+            var t = Easing.EaseOutCirc(0, time, counter);
 
             //apply animation to each object individually
             for (int i = 0; i < count; i++)
@@ -131,15 +135,19 @@ public class Sculpture : MonoBehaviour
 
                 var newRot = Quaternion.Lerp(
                     originalRotations[i], Quaternion.Inverse(originalRotations[i]), t);
+                    
+                var newScale = Vector3.Slerp(
+                    dataSets[i].scale, Vector3.zero, t);
 
                 //fade-out
                 renderers[i].GetPropertyBlock(block);
-                block.SetFloat("_Cutoff", t);
+                block.SetFloat("_Cutoff", t + 0.1f);
 
                 //apply animation
                 renderers[i].SetPropertyBlock(block);
                 transforms[i].localPosition = newPos;
                 transforms[i].localRotation = newRot;
+                transforms[i].localScale = newScale;
             }
 
             yield return null;

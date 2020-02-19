@@ -65,6 +65,7 @@ public class Manager : MonoBehaviour
         }
         else
         {
+            //instantiate new sculpture
             var sculpture = GenerateSculpture(id);
             if(sculpture)
             {

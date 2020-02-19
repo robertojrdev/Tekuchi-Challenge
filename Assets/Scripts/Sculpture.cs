@@ -40,9 +40,10 @@ public class Sculpture : MonoBehaviour
 
     private IEnumerator ShowAnimation()
     {
-        
         var count = transforms.Count;
         var block = new MaterialPropertyBlock();
+
+        //place objects in a random position above the stage
         for (int i = 0; i < count; i++)
         {
             var randPos = Random.insideUnitSphere * 5 + Vector3.up * 5;
@@ -50,38 +51,42 @@ public class Sculpture : MonoBehaviour
             transforms[i].gameObject.SetActive(true);
         }
 
+        //store random positions to lerp
         var originalPositions = new Vector3[count];
         var originalRotations = new Quaternion[count];
-
         for (int i = 0; i < count; i++)
         {
-            originalPositions[i] = transforms[i].position;
-            originalRotations[i] = transforms[i].rotation;
+            originalPositions[i] = transforms[i].localPosition;
+            originalRotations[i] = transforms[i].localRotation;
         }
 
+        //start animation loop
         var time = 1f;
         var counter = 0f;
         while (counter <= time)
         {
             counter += Time.deltaTime;
-            var t = Mathf.InverseLerp(0, time, counter);
-            t = Easing.EaseOutBounce(0, 1, t);
+            //lerp using an ease function
+            var t = Easing.EaseOutBounce(0, time, counter);
 
+            //apply animation to each object individually
             for (int i = 0; i < count; i++)
             {
+                //slerp cause a circular movement effect
                 var newPos = Vector3.Slerp(
                     originalPositions[i], dataSets[i].position, t);
 
                 var newRot = Quaternion.Lerp(
                     originalRotations[i], Quaternion.Euler(dataSets[i].rotation), t);
 
-
+                //fade-in
                 renderers[i].GetPropertyBlock(block);
                 block.SetFloat("_Cutoff", 1 - t);
-                renderers[i].SetPropertyBlock(block);
 
-                transforms[i].position = newPos;
-                transforms[i].rotation = newRot;
+                //apply animation
+                renderers[i].SetPropertyBlock(block);
+                transforms[i].localPosition = newPos;
+                transforms[i].localRotation = newRot;
             }
 
             yield return null;
@@ -99,38 +104,42 @@ public class Sculpture : MonoBehaviour
         var count = transforms.Count;
         var block = new MaterialPropertyBlock();
 
+        //store initial positions to lerp
         var originalPositions = new Vector3[count];
         var originalRotations = new Quaternion[count];
-
         for (int i = 0; i < count; i++)
         {
-            originalPositions[i] = transforms[i].position;
-            originalRotations[i] = transforms[i].rotation;
+            originalPositions[i] = transforms[i].localPosition;
+            originalRotations[i] = transforms[i].localRotation;
         }
 
-        var time = 2f;
+        //start animation loop
+        var time = .9f;
         var counter = 0f;
         while (counter <= time)
         {
             counter += Time.deltaTime;
-            var t = Mathf.InverseLerp(0, time, counter);
-            t = Easing.EaseOutCirc(0, 1, t);
+            //lerp using an ease function
+            var t = Easing.EaseOutExpo(0, time, counter);
 
+            //apply animation to each object individually
             for (int i = 0; i < count; i++)
             {
+                //slerp cause a circular movement effect
                 var newPos = Vector3.Slerp(
                     originalPositions[i], originalPositions[i] + Vector3.up * 5, t);
 
                 var newRot = Quaternion.Lerp(
                     originalRotations[i], Quaternion.Inverse(originalRotations[i]), t);
 
-
+                //fade-out
                 renderers[i].GetPropertyBlock(block);
                 block.SetFloat("_Cutoff", t);
-                renderers[i].SetPropertyBlock(block);
 
-                transforms[i].position = newPos;
-                transforms[i].rotation = newRot;
+                //apply animation
+                renderers[i].SetPropertyBlock(block);
+                transforms[i].localPosition = newPos;
+                transforms[i].localRotation = newRot;
             }
 
             yield return null;

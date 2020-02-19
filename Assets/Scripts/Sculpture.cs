@@ -46,7 +46,7 @@ public class Sculpture : MonoBehaviour
         //place objects in a random position above the stage
         for (int i = 0; i < count; i++)
         {
-            var randPos = Random.insideUnitSphere * 5 + Vector3.up * 5;
+            var randPos = dataSets[i].position + Random.insideUnitSphere + Vector3.up * 1.5f;
             transforms[i].position = randPos;
             transforms[i].gameObject.SetActive(true);
         }
@@ -131,7 +131,7 @@ public class Sculpture : MonoBehaviour
             {
                 //slerp cause a circular movement effect
                 var newPos = Vector3.Slerp(
-                    originalPositions[i], originalPositions[i] + Vector3.up * 5, t);
+                    originalPositions[i], originalPositions[i] + Vector3.up * 2, t);
 
                 var newRot = Quaternion.Lerp(
                     originalRotations[i], Quaternion.Inverse(originalRotations[i]), t);
